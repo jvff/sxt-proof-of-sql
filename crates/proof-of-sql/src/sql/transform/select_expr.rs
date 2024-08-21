@@ -10,6 +10,7 @@ use dyn_partial_eq::DynPartialEq;
 use polars::prelude::{Expr, LazyFrame};
 use proof_of_sql_parser::intermediate_ast::{AliasedResultExpr, Expression};
 use serde::{Deserialize, Serialize};
+use std::sync::Arc;
 
 /// The select expression used to select, reorder, and apply alias transformations
 #[derive(Debug, DynPartialEq, PartialEq, Serialize, Deserialize)]
@@ -54,7 +55,7 @@ impl RecordBatchExpr for SelectExpr {
             .iter()
             .cloned()
             .map(|expr| match expr {
-                Expr::Alias(a, b) => match *a {
+                Expr::Alias(a, b) => match Arc::unwrap_or_clone(a) {
                     Expr::Column(c) if c == b => {
                         Some((b.to_owned(), record_batch.column_by_name(&b)?.to_owned()))
                     }

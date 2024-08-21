@@ -185,9 +185,9 @@ pub fn dataframe_to_record_batch(data: DataFrame) -> Option<RecordBatch> {
 
                 DataType::Int64
             }
-            polars::datatypes::DataType::Utf8 => {
+            polars::datatypes::DataType::String => {
                 let col: Vec<_> = series
-                    .utf8()
+                    .str()
                     .unwrap()
                     .into_iter()
                     .map(|opt_v| opt_v.unwrap())

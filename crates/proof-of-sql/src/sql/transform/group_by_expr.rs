@@ -113,6 +113,6 @@ fn group_by_map_to_utf8_if_decimal(expr: Expr) -> Expr {
             }
             _ => Ok(Some(series)),
         },
-        GetOutput::from_type(DataType::Utf8),
+        GetOutput::from_type(DataType::String),
     )
 }

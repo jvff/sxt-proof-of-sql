@@ -3,7 +3,10 @@ use super::DataFrameExpr;
 use super::{INT128_PRECISION, INT128_SCALE};
 use arrow::datatypes::ArrowNativeTypeOp;
 use dyn_partial_eq::DynPartialEq;
-use polars::prelude::{col, DataType, Expr, GetOutput, LazyFrame, NamedFrom, Series};
+use polars::{
+    chunked_array::ops::SortMultipleOptions,
+    prelude::{col, DataType, Expr, GetOutput, LazyFrame, NamedFrom, Series},
+};
 use proof_of_sql_parser::intermediate_ast::{OrderBy, OrderByDirection};
 use serde::{Deserialize, Serialize};
 
@@ -29,18 +32,23 @@ impl DataFrameExpr for OrderByExprs {
 
         let maintain_order = true;
         let nulls_last = false;
-        let reverse: Vec<_> = self
+        let reverse = self
             .by_exprs
             .iter()
-            .map(|v| v.direction == OrderByDirection::Desc)
-            .collect();
+            .map(|v| v.direction == OrderByDirection::Desc);
         let by_column: Vec<_> = self
             .by_exprs
             .iter()
             .map(|v| order_by_map_to_utf8_if_decimal(col(v.expr.name())))
             .collect();
 
-        lazy_frame.sort_by_exprs(by_column, reverse, nulls_last, maintain_order)
+        lazy_frame.sort_by_exprs(
+            by_column,
+            SortMultipleOptions::default()
+                .with_order_descending_multi(reverse)
+                .with_nulls_last(nulls_last)
+                .with_maintain_order(maintain_order),
+        )
     }
 }
 
@@ -90,6 +98,6 @@ fn order_by_map_to_utf8_if_decimal(expr: Expr) -> Expr {
             }
             _ => Ok(Some(series)),
         },
-        GetOutput::from_type(DataType::Utf8),
+        GetOutput::from_type(DataType::String),
     )
 }

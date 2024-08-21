@@ -56,7 +56,7 @@ fn checked_div(series: &mut [Series]) -> PolarsResult<Option<Series>> {
         )));
     }
 
-    Ok(Some(num / den))
+    (num / den).map(Some)
 }
 
 /// Trait that provides a safe division operation for polars expressions.
